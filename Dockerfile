@@ -20,7 +20,7 @@ ENV PATH=$PATH:/go/bin
 ADD . /src/oxia
 
 RUN cd /src/oxia \
-    && make
+    && CGO_ENABLED=1 make
 
 FROM alpine:3.17.3
 
