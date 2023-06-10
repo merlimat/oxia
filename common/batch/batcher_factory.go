@@ -15,11 +15,10 @@
 package batch
 
 import (
-	"runtime"
 	"time"
 )
 
-var batcherChannelBufferSize = runtime.GOMAXPROCS(-1)
+const batcherChannelBufferSize = 128
 
 type BatcherFactory struct {
 	Linger              time.Duration
