@@ -18,34 +18,18 @@ import (
 	"bytes"
 )
 
+var separator = []byte{'/'}
+
 func compareWithSlash(a, b []byte) int {
-	for len(a) > 0 && len(b) > 0 {
-		idxA, idxB := bytes.IndexByte(a, '/'), bytes.IndexByte(b, '/')
-		switch {
-		case idxA < 0 && idxB < 0:
-			return bytes.Compare(a, b)
-		case idxA < 0 && idxB >= 0:
-			return -1
-		case idxA >= 0 && idxB < 0:
-			return +1
-		}
-
-		// At this point, both slices have '/'
-		spanA, spanB := a[:idxA], b[:idxB]
-		spanRes := bytes.Compare(spanA, spanB)
-		if spanRes != 0 {
-			return spanRes
-		}
-
-		a, b = a[idxA+1:], b[idxB+1:]
-	}
+	aCount := bytes.Count(a, separator)
+	bCount := bytes.Count(b, separator)
 
 	switch {
-	case len(a) < len(b):
+	case aCount < bCount:
 		return -1
-	case len(a) > len(b):
+	case aCount > bCount:
 		return +1
+	default:
+		return bytes.Compare(a, b)
 	}
-
-	return 0
 }
