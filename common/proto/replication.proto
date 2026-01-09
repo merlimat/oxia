@@ -79,6 +79,13 @@ message NewTermRequest {
   int64 term = 3;
 
   NewTermOptions options = 4;
+
+  // For shard splitting: the hash range this child shard should contain.
+  // If set, the receiver should filter its data to only keep keys within this range.
+  optional io.oxia.proto.v1.Int32HashRange target_hash_range = 5;
+
+  // For shard splitting: the parent shard ID to copy data from.
+  optional int64 parent_shard_id = 6;
 }
 
 message NewTermResponse {

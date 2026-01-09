@@ -421,11 +421,16 @@ func (x *NewTermOptions) GetKeySorting() KeySortingType {
 }
 
 type NewTermRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Shard         int64                  `protobuf:"varint,2,opt,name=shard,proto3" json:"shard,omitempty"`
-	Term          int64                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
-	Options       *NewTermOptions        `protobuf:"bytes,4,opt,name=options,proto3" json:"options,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Namespace string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Shard     int64                  `protobuf:"varint,2,opt,name=shard,proto3" json:"shard,omitempty"`
+	Term      int64                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
+	Options   *NewTermOptions        `protobuf:"bytes,4,opt,name=options,proto3" json:"options,omitempty"`
+	// For shard splitting: the hash range this child shard should contain.
+	// If set, the receiver should filter its data to only keep keys within this range.
+	TargetHashRange *Int32HashRange `protobuf:"bytes,5,opt,name=target_hash_range,json=targetHashRange,proto3,oneof" json:"target_hash_range,omitempty"`
+	// For shard splitting: the parent shard ID to copy data from.
+	ParentShardId *int64 `protobuf:"varint,6,opt,name=parent_shard_id,json=parentShardId,proto3,oneof" json:"parent_shard_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -486,6 +491,20 @@ func (x *NewTermRequest) GetOptions() *NewTermOptions {
 		return x.Options
 	}
 	return nil
+}
+
+func (x *NewTermRequest) GetTargetHashRange() *Int32HashRange {
+	if x != nil {
+		return x.TargetHashRange
+	}
+	return nil
+}
+
+func (x *NewTermRequest) GetParentShardId() int64 {
+	if x != nil && x.ParentShardId != nil {
+		return *x.ParentShardId
+	}
+	return 0
 }
 
 type NewTermResponse struct {
@@ -1249,12 +1268,16 @@ const file_replication_proto_rawDesc = "" +
 	"\x0eNewTermOptions\x121\n" +
 	"\x14enable_notifications\x18\x01 \x01(\bR\x13enableNotifications\x12<\n" +
 	"\vkey_sorting\x18\x02 \x01(\x0e2\x1b.replication.KeySortingTypeR\n" +
-	"keySorting\"\x8f\x01\n" +
+	"keySorting\"\xb9\x02\n" +
 	"\x0eNewTermRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
 	"\x05shard\x18\x02 \x01(\x03R\x05shard\x12\x12\n" +
 	"\x04term\x18\x03 \x01(\x03R\x04term\x125\n" +
-	"\aoptions\x18\x04 \x01(\v2\x1b.replication.NewTermOptionsR\aoptions\"K\n" +
+	"\aoptions\x18\x04 \x01(\v2\x1b.replication.NewTermOptionsR\aoptions\x12Q\n" +
+	"\x11target_hash_range\x18\x05 \x01(\v2 .io.oxia.proto.v1.Int32HashRangeH\x00R\x0ftargetHashRange\x88\x01\x01\x12+\n" +
+	"\x0fparent_shard_id\x18\x06 \x01(\x03H\x01R\rparentShardId\x88\x01\x01B\x14\n" +
+	"\x12_target_hash_rangeB\x12\n" +
+	"\x10_parent_shard_id\"K\n" +
 	"\x0fNewTermResponse\x128\n" +
 	"\rhead_entry_id\x18\x01 \x01(\v2\x14.replication.EntryIdR\vheadEntryId\"\xbc\x02\n" +
 	"\x13BecomeLeaderRequest\x12\x1c\n" +
@@ -1365,42 +1388,44 @@ var file_replication_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),                     // 20: replication.GetStatusRequest
 	(*GetStatusResponse)(nil),                    // 21: replication.GetStatusResponse
 	nil,                                          // 22: replication.BecomeLeaderRequest.FollowerMapsEntry
-	(*ShardAssignments)(nil),                     // 23: io.oxia.proto.v1.ShardAssignments
+	(*Int32HashRange)(nil),                       // 23: io.oxia.proto.v1.Int32HashRange
+	(*ShardAssignments)(nil),                     // 24: io.oxia.proto.v1.ShardAssignments
 }
 var file_replication_proto_depIdxs = []int32{
 	0,  // 0: replication.NewTermOptions.key_sorting:type_name -> replication.KeySortingType
 	6,  // 1: replication.NewTermRequest.options:type_name -> replication.NewTermOptions
-	3,  // 2: replication.NewTermResponse.head_entry_id:type_name -> replication.EntryId
-	22, // 3: replication.BecomeLeaderRequest.follower_maps:type_name -> replication.BecomeLeaderRequest.FollowerMapsEntry
-	3,  // 4: replication.AddFollowerRequest.follower_head_entry_id:type_name -> replication.EntryId
-	3,  // 5: replication.TruncateRequest.head_entry_id:type_name -> replication.EntryId
-	3,  // 6: replication.TruncateResponse.head_entry_id:type_name -> replication.EntryId
-	4,  // 7: replication.Append.entry:type_name -> replication.LogEntry
-	1,  // 8: replication.GetStatusResponse.status:type_name -> replication.ServingStatus
-	3,  // 9: replication.BecomeLeaderRequest.FollowerMapsEntry.value:type_name -> replication.EntryId
-	23, // 10: replication.OxiaCoordination.PushShardAssignments:input_type -> io.oxia.proto.v1.ShardAssignments
-	7,  // 11: replication.OxiaCoordination.NewTerm:input_type -> replication.NewTermRequest
-	9,  // 12: replication.OxiaCoordination.BecomeLeader:input_type -> replication.BecomeLeaderRequest
-	10, // 13: replication.OxiaCoordination.AddFollower:input_type -> replication.AddFollowerRequest
-	20, // 14: replication.OxiaCoordination.GetStatus:input_type -> replication.GetStatusRequest
-	18, // 15: replication.OxiaCoordination.DeleteShard:input_type -> replication.DeleteShardRequest
-	13, // 16: replication.OxiaLogReplication.Truncate:input_type -> replication.TruncateRequest
-	15, // 17: replication.OxiaLogReplication.Replicate:input_type -> replication.Append
-	5,  // 18: replication.OxiaLogReplication.SendSnapshot:input_type -> replication.SnapshotChunk
-	2,  // 19: replication.OxiaCoordination.PushShardAssignments:output_type -> replication.CoordinationShardAssignmentsResponse
-	8,  // 20: replication.OxiaCoordination.NewTerm:output_type -> replication.NewTermResponse
-	11, // 21: replication.OxiaCoordination.BecomeLeader:output_type -> replication.BecomeLeaderResponse
-	12, // 22: replication.OxiaCoordination.AddFollower:output_type -> replication.AddFollowerResponse
-	21, // 23: replication.OxiaCoordination.GetStatus:output_type -> replication.GetStatusResponse
-	19, // 24: replication.OxiaCoordination.DeleteShard:output_type -> replication.DeleteShardResponse
-	14, // 25: replication.OxiaLogReplication.Truncate:output_type -> replication.TruncateResponse
-	16, // 26: replication.OxiaLogReplication.Replicate:output_type -> replication.Ack
-	17, // 27: replication.OxiaLogReplication.SendSnapshot:output_type -> replication.SnapshotResponse
-	19, // [19:28] is the sub-list for method output_type
-	10, // [10:19] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	23, // 2: replication.NewTermRequest.target_hash_range:type_name -> io.oxia.proto.v1.Int32HashRange
+	3,  // 3: replication.NewTermResponse.head_entry_id:type_name -> replication.EntryId
+	22, // 4: replication.BecomeLeaderRequest.follower_maps:type_name -> replication.BecomeLeaderRequest.FollowerMapsEntry
+	3,  // 5: replication.AddFollowerRequest.follower_head_entry_id:type_name -> replication.EntryId
+	3,  // 6: replication.TruncateRequest.head_entry_id:type_name -> replication.EntryId
+	3,  // 7: replication.TruncateResponse.head_entry_id:type_name -> replication.EntryId
+	4,  // 8: replication.Append.entry:type_name -> replication.LogEntry
+	1,  // 9: replication.GetStatusResponse.status:type_name -> replication.ServingStatus
+	3,  // 10: replication.BecomeLeaderRequest.FollowerMapsEntry.value:type_name -> replication.EntryId
+	24, // 11: replication.OxiaCoordination.PushShardAssignments:input_type -> io.oxia.proto.v1.ShardAssignments
+	7,  // 12: replication.OxiaCoordination.NewTerm:input_type -> replication.NewTermRequest
+	9,  // 13: replication.OxiaCoordination.BecomeLeader:input_type -> replication.BecomeLeaderRequest
+	10, // 14: replication.OxiaCoordination.AddFollower:input_type -> replication.AddFollowerRequest
+	20, // 15: replication.OxiaCoordination.GetStatus:input_type -> replication.GetStatusRequest
+	18, // 16: replication.OxiaCoordination.DeleteShard:input_type -> replication.DeleteShardRequest
+	13, // 17: replication.OxiaLogReplication.Truncate:input_type -> replication.TruncateRequest
+	15, // 18: replication.OxiaLogReplication.Replicate:input_type -> replication.Append
+	5,  // 19: replication.OxiaLogReplication.SendSnapshot:input_type -> replication.SnapshotChunk
+	2,  // 20: replication.OxiaCoordination.PushShardAssignments:output_type -> replication.CoordinationShardAssignmentsResponse
+	8,  // 21: replication.OxiaCoordination.NewTerm:output_type -> replication.NewTermResponse
+	11, // 22: replication.OxiaCoordination.BecomeLeader:output_type -> replication.BecomeLeaderResponse
+	12, // 23: replication.OxiaCoordination.AddFollower:output_type -> replication.AddFollowerResponse
+	21, // 24: replication.OxiaCoordination.GetStatus:output_type -> replication.GetStatusResponse
+	19, // 25: replication.OxiaCoordination.DeleteShard:output_type -> replication.DeleteShardResponse
+	14, // 26: replication.OxiaLogReplication.Truncate:output_type -> replication.TruncateResponse
+	16, // 27: replication.OxiaLogReplication.Replicate:output_type -> replication.Ack
+	17, // 28: replication.OxiaLogReplication.SendSnapshot:output_type -> replication.SnapshotResponse
+	20, // [20:29] is the sub-list for method output_type
+	11, // [11:20] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_replication_proto_init() }
@@ -1409,6 +1434,7 @@ func file_replication_proto_init() {
 		return
 	}
 	file_client_proto_init()
+	file_replication_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

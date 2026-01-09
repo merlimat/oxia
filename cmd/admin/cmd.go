@@ -17,14 +17,13 @@ package admin
 import (
 	"fmt"
 
-	"github.com/oxia-db/oxia/cmd/admin/commons"
-	"github.com/oxia-db/oxia/cmd/admin/listnodes"
-
-	"github.com/oxia-db/oxia/cmd/admin/listnamespaces"
-
-	oxiacommon "github.com/oxia-db/oxia/common/constant"
-
 	"github.com/spf13/cobra"
+
+	"github.com/oxia-db/oxia/cmd/admin/commons"
+	"github.com/oxia-db/oxia/cmd/admin/listnamespaces"
+	"github.com/oxia-db/oxia/cmd/admin/listnodes"
+	"github.com/oxia-db/oxia/cmd/admin/split"
+	oxiacommon "github.com/oxia-db/oxia/common/constant"
 )
 
 var (
@@ -41,4 +40,5 @@ func init() {
 
 	Cmd.AddCommand(listnamespaces.Cmd)
 	Cmd.AddCommand(listnodes.Cmd)
+	Cmd.AddCommand(split.Cmd)
 }

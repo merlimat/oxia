@@ -38,6 +38,7 @@ import (
 	"github.com/oxia-db/oxia/common/cache"
 
 	"github.com/oxia-db/oxia/common/compare"
+	"github.com/oxia-db/oxia/common/hash"
 	"github.com/oxia-db/oxia/common/metric"
 )
 
@@ -579,6 +580,86 @@ func (p *Pebble) RangeScan(lowerBound, upperBound string, itOpts IteratorOpts) (
 
 func (p *Pebble) Snapshot() (Snapshot, error) {
 	return newPebbleSnapshot(p)
+}
+
+// FilterByHashRange deletes all keys whose hash falls outside the given range.
+// This is used during shard splitting to retain only keys belonging to this shard.
+func (p *Pebble) FilterByHashRange(minHashInclusive, maxHashInclusive uint32) error {
+	slog.Info("Starting FilterByHashRange",
+		slog.Uint64("minHash", uint64(minHashInclusive)),
+		slog.Uint64("maxHash", uint64(maxHashInclusive)),
+		slog.Int64("shard", p.shardId),
+	)
+
+	// Iterate all keys (excluding internal keys)
+	it, err := p.KeyIterator(NoInternalKeys)
+	if err != nil {
+		return errors.Wrap(err, "failed to create key iterator for filtering")
+	}
+	defer it.Close()
+
+	// Collect keys to delete in batches to avoid memory issues
+	const batchSize = 1000
+	keysToDelete := make([]string, 0, batchSize)
+	totalDeleted := 0
+	totalKept := 0
+
+	for it.Valid() {
+		key := it.Key()
+		keyHash := hash.Xxh332(key)
+
+		if keyHash < minHashInclusive || keyHash > maxHashInclusive {
+			keysToDelete = append(keysToDelete, key)
+
+			// Delete in batches
+			if len(keysToDelete) >= batchSize {
+				if err := p.deleteKeys(keysToDelete); err != nil {
+					return err
+				}
+				totalDeleted += len(keysToDelete)
+				keysToDelete = keysToDelete[:0]
+			}
+		} else {
+			totalKept++
+		}
+
+		it.Next()
+	}
+
+	// Delete remaining keys
+	if len(keysToDelete) > 0 {
+		if err := p.deleteKeys(keysToDelete); err != nil {
+			return err
+		}
+		totalDeleted += len(keysToDelete)
+	}
+
+	// Flush to ensure all deletes are persisted
+	if err := p.Flush(); err != nil {
+		return errors.Wrap(err, "failed to flush after filtering")
+	}
+
+	slog.Info("Completed FilterByHashRange",
+		slog.Int("keysDeleted", totalDeleted),
+		slog.Int("keysKept", totalKept),
+		slog.Int64("shard", p.shardId),
+	)
+
+	return nil
+}
+
+func (p *Pebble) deleteKeys(keys []string) error {
+	batch := p.db.NewBatch()
+	for _, key := range keys {
+		if err := batch.Delete(p.keyEncoder.Encode(key), nil); err != nil {
+			_ = batch.Close()
+			return errors.Wrapf(err, "failed to delete key %s", key)
+		}
+	}
+	if err := batch.Commit(p.writeOptions); err != nil {
+		return errors.Wrap(err, "failed to commit delete batch")
+	}
+	return batch.Close()
 }
 
 // Batch wrapper methods

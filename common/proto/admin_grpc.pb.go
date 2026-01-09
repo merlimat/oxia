@@ -38,6 +38,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	OxiaAdmin_ListNamespaces_FullMethodName = "/io.oxia.proto.v1.OxiaAdmin/ListNamespaces"
 	OxiaAdmin_ListNodes_FullMethodName      = "/io.oxia.proto.v1.OxiaAdmin/ListNodes"
+	OxiaAdmin_SplitShard_FullMethodName     = "/io.oxia.proto.v1.OxiaAdmin/SplitShard"
 )
 
 // OxiaAdminClient is the client API for OxiaAdmin service.
@@ -46,6 +47,9 @@ const (
 type OxiaAdminClient interface {
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
 	ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (*ListNodesResponse, error)
+	// SplitShard initiates splitting a shard into two child shards.
+	// The parent shard's hash range is split at the midpoint.
+	SplitShard(ctx context.Context, in *SplitShardRequest, opts ...grpc.CallOption) (*SplitShardResponse, error)
 }
 
 type oxiaAdminClient struct {
@@ -76,12 +80,25 @@ func (c *oxiaAdminClient) ListNodes(ctx context.Context, in *ListNodesRequest, o
 	return out, nil
 }
 
+func (c *oxiaAdminClient) SplitShard(ctx context.Context, in *SplitShardRequest, opts ...grpc.CallOption) (*SplitShardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SplitShardResponse)
+	err := c.cc.Invoke(ctx, OxiaAdmin_SplitShard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OxiaAdminServer is the server API for OxiaAdmin service.
 // All implementations must embed UnimplementedOxiaAdminServer
 // for forward compatibility.
 type OxiaAdminServer interface {
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	ListNodes(context.Context, *ListNodesRequest) (*ListNodesResponse, error)
+	// SplitShard initiates splitting a shard into two child shards.
+	// The parent shard's hash range is split at the midpoint.
+	SplitShard(context.Context, *SplitShardRequest) (*SplitShardResponse, error)
 	mustEmbedUnimplementedOxiaAdminServer()
 }
 
@@ -97,6 +114,9 @@ func (UnimplementedOxiaAdminServer) ListNamespaces(context.Context, *ListNamespa
 }
 func (UnimplementedOxiaAdminServer) ListNodes(context.Context, *ListNodesRequest) (*ListNodesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNodes not implemented")
+}
+func (UnimplementedOxiaAdminServer) SplitShard(context.Context, *SplitShardRequest) (*SplitShardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SplitShard not implemented")
 }
 func (UnimplementedOxiaAdminServer) mustEmbedUnimplementedOxiaAdminServer() {}
 func (UnimplementedOxiaAdminServer) testEmbeddedByValue()                   {}
@@ -155,6 +175,24 @@ func _OxiaAdmin_ListNodes_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OxiaAdmin_SplitShard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SplitShardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OxiaAdminServer).SplitShard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OxiaAdmin_SplitShard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OxiaAdminServer).SplitShard(ctx, req.(*SplitShardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OxiaAdmin_ServiceDesc is the grpc.ServiceDesc for OxiaAdmin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -169,6 +207,10 @@ var OxiaAdmin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListNodes",
 			Handler:    _OxiaAdmin_ListNodes_Handler,
+		},
+		{
+			MethodName: "SplitShard",
+			Handler:    _OxiaAdmin_SplitShard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

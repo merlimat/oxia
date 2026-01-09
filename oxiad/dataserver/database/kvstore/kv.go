@@ -130,6 +130,10 @@ type KV interface {
 	Flush() error
 
 	Delete() error
+
+	// FilterByHashRange deletes all keys whose hash falls outside the given range.
+	// This is used during shard splitting to retain only keys belonging to this shard.
+	FilterByHashRange(minHashInclusive, maxHashInclusive uint32) error
 }
 type FactoryOptions struct {
 	DataDir     string

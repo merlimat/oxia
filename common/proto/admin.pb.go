@@ -266,6 +266,112 @@ func (x *ListNodesResponse) GetNodes() []*Node {
 	return nil
 }
 
+type SplitShardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Shard         int64                  `protobuf:"varint,2,opt,name=shard,proto3" json:"shard,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SplitShardRequest) Reset() {
+	*x = SplitShardRequest{}
+	mi := &file_admin_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SplitShardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SplitShardRequest) ProtoMessage() {}
+
+func (x *SplitShardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SplitShardRequest.ProtoReflect.Descriptor instead.
+func (*SplitShardRequest) Descriptor() ([]byte, []int) {
+	return file_admin_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SplitShardRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *SplitShardRequest) GetShard() int64 {
+	if x != nil {
+		return x.Shard
+	}
+	return 0
+}
+
+type SplitShardResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The ID of the child shard covering the lower hash range [parent.min, midpoint]
+	ChildShardLow int64 `protobuf:"varint,1,opt,name=child_shard_low,json=childShardLow,proto3" json:"child_shard_low,omitempty"`
+	// The ID of the child shard covering the upper hash range [midpoint+1, parent.max]
+	ChildShardHigh int64 `protobuf:"varint,2,opt,name=child_shard_high,json=childShardHigh,proto3" json:"child_shard_high,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SplitShardResponse) Reset() {
+	*x = SplitShardResponse{}
+	mi := &file_admin_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SplitShardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SplitShardResponse) ProtoMessage() {}
+
+func (x *SplitShardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SplitShardResponse.ProtoReflect.Descriptor instead.
+func (*SplitShardResponse) Descriptor() ([]byte, []int) {
+	return file_admin_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SplitShardResponse) GetChildShardLow() int64 {
+	if x != nil {
+		return x.ChildShardLow
+	}
+	return 0
+}
+
+func (x *SplitShardResponse) GetChildShardHigh() int64 {
+	if x != nil {
+		return x.ChildShardHigh
+	}
+	return 0
+}
+
 var File_admin_proto protoreflect.FileDescriptor
 
 const file_admin_proto_rawDesc = "" +
@@ -287,10 +393,18 @@ const file_admin_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\a\n" +
 	"\x05_name\"A\n" +
 	"\x11ListNodesResponse\x12,\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x16.io.oxia.proto.v1.NodeR\x05nodes2\xc6\x01\n" +
+	"\x05nodes\x18\x01 \x03(\v2\x16.io.oxia.proto.v1.NodeR\x05nodes\"G\n" +
+	"\x11SplitShardRequest\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
+	"\x05shard\x18\x02 \x01(\x03R\x05shard\"f\n" +
+	"\x12SplitShardResponse\x12&\n" +
+	"\x0fchild_shard_low\x18\x01 \x01(\x03R\rchildShardLow\x12(\n" +
+	"\x10child_shard_high\x18\x02 \x01(\x03R\x0echildShardHigh2\x9f\x02\n" +
 	"\tOxiaAdmin\x12c\n" +
 	"\x0eListNamespaces\x12'.io.oxia.proto.v1.ListNamespacesRequest\x1a(.io.oxia.proto.v1.ListNamespacesResponse\x12T\n" +
-	"\tListNodes\x12\".io.oxia.proto.v1.ListNodesRequest\x1a#.io.oxia.proto.v1.ListNodesResponseB(P\x01Z$github.com/oxia-db/oxia/common/protob\x06proto3"
+	"\tListNodes\x12\".io.oxia.proto.v1.ListNodesRequest\x1a#.io.oxia.proto.v1.ListNodesResponse\x12W\n" +
+	"\n" +
+	"SplitShard\x12#.io.oxia.proto.v1.SplitShardRequest\x1a$.io.oxia.proto.v1.SplitShardResponseB(P\x01Z$github.com/oxia-db/oxia/common/protob\x06proto3"
 
 var (
 	file_admin_proto_rawDescOnce sync.Once
@@ -304,24 +418,28 @@ func file_admin_proto_rawDescGZIP() []byte {
 	return file_admin_proto_rawDescData
 }
 
-var file_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_admin_proto_goTypes = []any{
 	(*ListNamespacesRequest)(nil),  // 0: io.oxia.proto.v1.ListNamespacesRequest
 	(*ListNamespacesResponse)(nil), // 1: io.oxia.proto.v1.ListNamespacesResponse
 	(*ListNodesRequest)(nil),       // 2: io.oxia.proto.v1.ListNodesRequest
 	(*Node)(nil),                   // 3: io.oxia.proto.v1.Node
 	(*ListNodesResponse)(nil),      // 4: io.oxia.proto.v1.ListNodesResponse
-	nil,                            // 5: io.oxia.proto.v1.Node.MetadataEntry
+	(*SplitShardRequest)(nil),      // 5: io.oxia.proto.v1.SplitShardRequest
+	(*SplitShardResponse)(nil),     // 6: io.oxia.proto.v1.SplitShardResponse
+	nil,                            // 7: io.oxia.proto.v1.Node.MetadataEntry
 }
 var file_admin_proto_depIdxs = []int32{
-	5, // 0: io.oxia.proto.v1.Node.metadata:type_name -> io.oxia.proto.v1.Node.MetadataEntry
+	7, // 0: io.oxia.proto.v1.Node.metadata:type_name -> io.oxia.proto.v1.Node.MetadataEntry
 	3, // 1: io.oxia.proto.v1.ListNodesResponse.nodes:type_name -> io.oxia.proto.v1.Node
 	0, // 2: io.oxia.proto.v1.OxiaAdmin.ListNamespaces:input_type -> io.oxia.proto.v1.ListNamespacesRequest
 	2, // 3: io.oxia.proto.v1.OxiaAdmin.ListNodes:input_type -> io.oxia.proto.v1.ListNodesRequest
-	1, // 4: io.oxia.proto.v1.OxiaAdmin.ListNamespaces:output_type -> io.oxia.proto.v1.ListNamespacesResponse
-	4, // 5: io.oxia.proto.v1.OxiaAdmin.ListNodes:output_type -> io.oxia.proto.v1.ListNodesResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	5, // 4: io.oxia.proto.v1.OxiaAdmin.SplitShard:input_type -> io.oxia.proto.v1.SplitShardRequest
+	1, // 5: io.oxia.proto.v1.OxiaAdmin.ListNamespaces:output_type -> io.oxia.proto.v1.ListNamespacesResponse
+	4, // 6: io.oxia.proto.v1.OxiaAdmin.ListNodes:output_type -> io.oxia.proto.v1.ListNodesResponse
+	6, // 7: io.oxia.proto.v1.OxiaAdmin.SplitShard:output_type -> io.oxia.proto.v1.SplitShardResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -339,7 +457,7 @@ func file_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_proto_rawDesc), len(file_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

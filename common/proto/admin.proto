@@ -28,6 +28,10 @@ service OxiaAdmin {
 
   rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
 
+  // SplitShard initiates splitting a shard into two child shards.
+  // The parent shard's hash range is split at the midpoint.
+  rpc SplitShard(SplitShardRequest) returns (SplitShardResponse);
+
 }
 
 message ListNamespacesRequest {
@@ -49,4 +53,16 @@ message Node {
 
 message ListNodesResponse {
   repeated Node nodes = 1;
+}
+
+message SplitShardRequest {
+  string namespace = 1;
+  int64 shard = 2;
+}
+
+message SplitShardResponse {
+  // The ID of the child shard covering the lower hash range [parent.min, midpoint]
+  int64 child_shard_low = 1;
+  // The ID of the child shard covering the upper hash range [midpoint+1, parent.max]
+  int64 child_shard_high = 2;
 }

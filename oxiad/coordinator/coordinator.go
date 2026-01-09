@@ -55,6 +55,10 @@ type Coordinator interface {
 
 	StatusResource() resource.StatusResource
 	ConfigResource() resource.ClusterConfigResource
+
+	// SplitShard initiates splitting a shard into two child shards.
+	// Returns the IDs of the two child shards (low and high).
+	SplitShard(namespace string, shardId int64) (childLow, childHigh int64, err error)
 }
 
 var _ Coordinator = &coordinator{}
@@ -79,6 +83,9 @@ type coordinator struct {
 	// nodes list. We keep sending them assignments updates
 	// because they might be still reachable to clients.
 	drainingNodes map[string]controller.DataServerController
+
+	// splitControllers tracks active split operations by parent shard ID
+	splitControllers map[int64]controller.SplitController
 
 	loadBalancer     balancer.LoadBalancer
 	ensembleSelector selector.Selector[*ensemble.Context, []string]
@@ -424,6 +431,7 @@ func NewCoordinator(meta metadata.Provider,
 		shardControllers:      make(map[int64]controller.ShardController),
 		nodeControllers:       make(map[string]controller.DataServerController),
 		drainingNodes:         make(map[string]controller.DataServerController),
+		splitControllers:      make(map[int64]controller.SplitController),
 		rpc:                   rpcProvider,
 	}
 	c.ccrWg.Add(1)
@@ -508,4 +516,52 @@ func NewCoordinator(meta metadata.Provider,
 	c.loadBalancer.Start()
 	c.ccrWg.Done()
 	return c, nil
+}
+
+func (c *coordinator) SplitShard(namespace string, shardId int64) (childLow, childHigh int64, err error) {
+	c.Lock()
+	defer c.Unlock()
+
+	// Check if there's already a split in progress for this shard
+	if _, exists := c.splitControllers[shardId]; exists {
+		return 0, 0, errors.Errorf("split already in progress for shard %d", shardId)
+	}
+
+	// Create split controller
+	splitCtrl, err := controller.NewSplitController(
+		c.ctx,
+		namespace,
+		shardId,
+		c.statusResource,
+		c.configResource,
+		c.rpc,
+		c.selectNewEnsemble,
+		c,
+	)
+	if err != nil {
+		return 0, 0, errors.Wrap(err, "failed to create split controller")
+	}
+
+	c.splitControllers[shardId] = splitCtrl
+
+	// Start split in background
+	go func() {
+		if err := splitCtrl.Start(); err != nil {
+			c.Error("Split failed",
+				slog.Any("error", err),
+				slog.String("namespace", namespace),
+				slog.Int64("shard", shardId),
+			)
+		}
+
+		// Clean up and trigger assignment update
+		c.Lock()
+		delete(c.splitControllers, shardId)
+		c.computeNewAssignments()
+		c.Unlock()
+	}()
+
+	// Return the child shard IDs (they are set synchronously during Start)
+	childLow, childHigh = splitCtrl.ChildShardIds()
+	return childLow, childHigh, nil
 }

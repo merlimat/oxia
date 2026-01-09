@@ -26,6 +26,8 @@ const (
 	ShardStatusSteadyState
 	ShardStatusElection
 	ShardStatusDeleting
+	ShardStatusSplitting     // Parent shard being split
+	ShardStatusSplitPrepare  // Child shard receiving data from parent
 )
 
 func (s ShardStatus) String() string {
@@ -33,17 +35,21 @@ func (s ShardStatus) String() string {
 }
 
 var toString = map[ShardStatus]string{
-	ShardStatusUnknown:     "Unknown",
-	ShardStatusSteadyState: "SteadyState",
-	ShardStatusElection:    "Election",
-	ShardStatusDeleting:    "Deleting",
+	ShardStatusUnknown:      "Unknown",
+	ShardStatusSteadyState:  "SteadyState",
+	ShardStatusElection:     "Election",
+	ShardStatusDeleting:     "Deleting",
+	ShardStatusSplitting:    "Splitting",
+	ShardStatusSplitPrepare: "SplitPrepare",
 }
 
 var toShardStatus = map[string]ShardStatus{
-	"Unknown":     ShardStatusUnknown,
-	"SteadyState": ShardStatusSteadyState,
-	"Election":    ShardStatusElection,
-	"Deleting":    ShardStatusDeleting,
+	"Unknown":      ShardStatusUnknown,
+	"SteadyState":  ShardStatusSteadyState,
+	"Election":     ShardStatusElection,
+	"Deleting":     ShardStatusDeleting,
+	"Splitting":    ShardStatusSplitting,
+	"SplitPrepare": ShardStatusSplitPrepare,
 }
 
 // MarshalJSON marshals the enum as a quoted json string.

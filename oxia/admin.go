@@ -22,6 +22,8 @@ type AdminClient interface {
 	ListNamespaces() *ListNamespacesResult
 
 	ListNodes() *ListNodesResult
+
+	SplitShard(namespace string, shardId int64) *SplitShardResult
 }
 
 type ListNamespacesResult struct {
@@ -39,4 +41,10 @@ type Node struct {
 type ListNodesResult struct {
 	Nodes []*Node
 	Error error
+}
+
+type SplitShardResult struct {
+	ChildShardLow  int64
+	ChildShardHigh int64
+	Error          error
 }

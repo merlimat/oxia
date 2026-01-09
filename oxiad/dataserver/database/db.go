@@ -98,6 +98,10 @@ type DB interface {
 
 	// Delete and close the database and all its files
 	Delete() error
+
+	// FilterByHashRange deletes all keys whose hash falls outside the given range.
+	// This is used during shard splitting to retain only keys belonging to this shard.
+	FilterByHashRange(minHashInclusive, maxHashInclusive uint32) error
 }
 
 func NewDB(namespace string, shardId int64, factory kvstore.Factory,
@@ -183,6 +187,10 @@ type db struct {
 
 func (d *db) Snapshot() (kvstore.Snapshot, error) {
 	return d.kv.Snapshot()
+}
+
+func (d *db) FilterByHashRange(minHashInclusive, maxHashInclusive uint32) error {
+	return d.kv.FilterByHashRange(minHashInclusive, maxHashInclusive)
 }
 
 func (d *db) EnableNotifications(enabled bool) {

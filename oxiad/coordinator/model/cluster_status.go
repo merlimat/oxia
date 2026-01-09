@@ -39,6 +39,20 @@ type ShardMetadata struct {
 	// quorum.
 	PendingDeleteShardNodes []Server       `json:"pendingDeleteShardNodes" yaml:"pendingDeleteShardNodes"`
 	Int32HashRange          Int32HashRange `json:"int32HashRange" yaml:"int32HashRange"`
+
+	// Split-related fields
+
+	// ParentShardId is set for child shards during and after a split,
+	// pointing to the parent shard they were created from.
+	ParentShardId *int64 `json:"parentShardId,omitempty" yaml:"parentShardId,omitempty"`
+
+	// ChildShardIds is set for parent shards during a split,
+	// containing the IDs of the two child shards being created.
+	ChildShardIds []int64 `json:"childShardIds,omitempty" yaml:"childShardIds,omitempty"`
+
+	// SplitBoundary is the hash value at which the parent shard is being split.
+	// Child 1 gets [parent.Min, SplitBoundary], Child 2 gets [SplitBoundary+1, parent.Max]
+	SplitBoundary *uint32 `json:"splitBoundary,omitempty" yaml:"splitBoundary,omitempty"`
 }
 
 type NamespaceStatus struct {
@@ -76,11 +90,18 @@ func (sm ShardMetadata) Clone() ShardMetadata {
 		RemovedNodes:            make([]Server, len(sm.RemovedNodes)),
 		PendingDeleteShardNodes: make([]Server, len(sm.PendingDeleteShardNodes)),
 		Int32HashRange:          sm.Int32HashRange.Clone(),
+		ParentShardId:           sm.ParentShardId,
+		SplitBoundary:           sm.SplitBoundary,
 	}
 
 	copy(r.Ensemble, sm.Ensemble)
 	copy(r.RemovedNodes, sm.RemovedNodes)
 	copy(r.PendingDeleteShardNodes, sm.PendingDeleteShardNodes)
+
+	if sm.ChildShardIds != nil {
+		r.ChildShardIds = make([]int64, len(sm.ChildShardIds))
+		copy(r.ChildShardIds, sm.ChildShardIds)
+	}
 
 	return r
 }

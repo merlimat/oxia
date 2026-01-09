@@ -92,6 +92,34 @@ func (admin *adminClientImpl) ListNamespaces() *ListNamespacesResult {
 	}
 }
 
+func (admin *adminClientImpl) SplitShard(namespace string, shardId int64) *SplitShardResult {
+	client, err := admin.clientPool.GetAminRpc(admin.adminAddr)
+	if err != nil {
+		return &SplitShardResult{
+			Error: err,
+		}
+	}
+	if client == nil {
+		return &SplitShardResult{
+			Error: errors.New("no coordinator admin client available"),
+		}
+	}
+
+	response, err := client.SplitShard(context.Background(), &proto.SplitShardRequest{
+		Namespace: namespace,
+		Shard:     shardId,
+	})
+	if err != nil {
+		return &SplitShardResult{
+			Error: err,
+		}
+	}
+	return &SplitShardResult{
+		ChildShardLow:  response.ChildShardLow,
+		ChildShardHigh: response.ChildShardHigh,
+	}
+}
+
 func NewAdminClient(adminAddr string, tlsConf *tls.Config, authentication auth.Authentication) (AdminClient, error) {
 	c := rpc.NewClientPool(tlsConf, authentication)
 	return &adminClientImpl{
