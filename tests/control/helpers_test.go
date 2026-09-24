@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/oxia-db/oxia/common/constant"
@@ -65,7 +64,7 @@ func waitForLeaderFeature(t *testing.T, metadata coordmetadata.Metadata, servers
 	t.Helper()
 
 	var shard *proto.ShardMetadata
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		shard = mock.StatusSnapshot(t, metadata).Namespaces[constant.DefaultNamespace].GetShards()[0]
 		if shard.GetStatusOrDefault() != proto.ShardStatusSteadyState {
 			return false
